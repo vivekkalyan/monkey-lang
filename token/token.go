@@ -7,3 +7,28 @@ type Token struct {
     Literal string
 }
 
+const {
+    ILLEGEAL = "ILLEGAL"
+    EOF = "EOF"
+
+    // Identifiers + literals
+    IDENT = "IDENT" // names of functions, vars
+    INT = "INT" // numbers
+
+    // Operators
+    ASSIGN = "="
+    PLUS = "+"
+
+    // Delimiters
+    COMMA = ","
+    SEMICOLON = ";"
+
+    LPAREN = "("
+    RPAREN = ")"
+    LBRACE = "{"
+    RBRACE = "}"
+
+    // Keywords
+    FUNCTION = "FUNCTION"
+    LET = "LET"
+}
