@@ -7,7 +7,7 @@ import (
 )
 
 func TestNextTokenOperators(t *testing.T) {
-	input := "=+(){},;"
+	input := "=+(){},;!-/*5;"
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -20,6 +20,12 @@ func TestNextTokenOperators(t *testing.T) {
 		{token.LBRACE, "{"},
 		{token.RBRACE, "}"},
 		{token.COMMA, ","},
+		{token.SEMICOLON, ";"},
+		{token.BANG, "!"},
+		{token.MINUS, "-"},
+		{token.SLASH, "/"},
+		{token.ASTERISK, "*"},
+		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
@@ -47,7 +53,14 @@ func TestNextTokenSourceCode(t *testing.T) {
 	let add = fn(x,y) {
 		x+y;
 	};
-	let result = add(five, ten);`
+	let result = add(five, ten);
+    5 < 10 > 5;
+
+    if (5 < 10) {
+        return true;
+    } else {
+        return false;
+    }`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -89,6 +102,29 @@ func TestNextTokenSourceCode(t *testing.T) {
 		{token.IDENT, "ten"},
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 
