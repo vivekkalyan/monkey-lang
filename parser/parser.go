@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"monkey-lang/ast"
 	"monkey-lang/lexer"
 	"monkey-lang/token"
@@ -11,16 +12,33 @@ type Parser struct {
 
 	curToken  token.Token
 	peekToken token.Token
+
+	errors []string
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{
+		l:      l,
+		errors: []string{},
+	}
 
 	// read two tokens, so that curToken and peekToken are both set
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+// accessor method for errors
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
+// method to create error when next token is not what is expected
+// creates error msg and adds to parser errors array
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) nextToken() {
@@ -45,6 +63,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
 }
