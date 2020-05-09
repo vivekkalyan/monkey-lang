@@ -69,7 +69,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 }
 
 // parses the program to return an array of parsed statements (done by
-// ParseStatment)
+// ParseStatement)
 func (p *Parser) ParseProgram() *ast.Program {
 	// initalize program with empty structs
 	// note: we can use pointer because go automatically dereferences them
@@ -92,10 +92,15 @@ func (p *Parser) ParseProgram() *ast.Program {
 // parses a statement based on the identifier present at the current token
 // supports:
 // - let statements
+// - return statements
 func (p *Parser) parseStatement() ast.Statement {
+	// decide what type of statement is being parsing based on the first token
+	// that is seen
 	switch p.curToken.Type {
 	case token.LET:
-		return p.parseLetStatment()
+		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
@@ -103,8 +108,8 @@ func (p *Parser) parseStatement() ast.Statement {
 
 // parses lets statements. statements are expected to have the form
 // <let> <identifier> <assign> <expr> <semicolon>
-// returns a statement with Token, Name and Value
-func (p *Parser) parseLetStatment() *ast.LetStatement {
+// returns a LetStatement with Token, Name and Value
+func (p *Parser) parseLetStatement() *ast.LetStatement {
 	// initalize a let statement (current token is at let)
 	stmt := &ast.LetStatement{Token: p.curToken}
 
@@ -122,6 +127,23 @@ func (p *Parser) parseLetStatment() *ast.LetStatement {
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
+
+	// TODO: skip till end of sentence
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+// parses return statements. statements are expected to have the form
+// <return> <expr> <semicoln>
+// returns a ReturnStatement with Token and ReturnValue
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	// initalize a return statement (current token is at return)
+	stmt := &ast.ReturnStatement{Token: p.curToken}
+
+	p.nextToken()
 
 	// TODO: skip till end of sentence
 	for !p.curTokenIs(token.SEMICOLON) {
