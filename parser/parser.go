@@ -14,7 +14,21 @@ type Parser struct {
 	peekToken token.Token
 
 	errors []string
+
+	// map of functions with key tokentype and value fn
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
+
+type (
+	// prefix parse function returns returns the right side of the prefix as an
+	// expression
+	prefixParseFn func() ast.Expression
+
+	// infix parse function takes in the left side of infix and returns the right
+	// side of the infix as an expression
+	infixParseFn func(ast.Expression) ast.Expression
+)
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
@@ -32,6 +46,16 @@ func New(l *lexer.Lexer) *Parser {
 // accessor method for errors
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+// setter method for prefix functions
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+
+// setter method for infix functions
+func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
 }
 
 // method to create error when next token is not what is expected
