@@ -112,9 +112,8 @@ func (es *ExpressionStatement) String() string {
 	// initalize buffer to store string
 	var out bytes.Buffer
 
-	// TODO: remove once expressions are fully built
 	if es.Expression != nil {
-		out.WriteString(es.Expression.String())
+		return es.Expression.String()
 	}
 
 	return ""
