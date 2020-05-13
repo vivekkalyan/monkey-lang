@@ -7,6 +7,18 @@ import (
 	"monkey-lang/token"
 )
 
+const (
+	// iota assigns the constants to auto increasing numbers
+	_ int = iota
+	LOWEST
+	EQUALS		// =
+	LESSGREATER // < or >
+	SUM			// +
+	PRODUCT		// -
+	PREFIX		// -x or !x
+	CALL		// func(x)
+)
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -39,6 +51,11 @@ func New(l *lexer.Lexer) *Parser {
 	// read two tokens, so that curToken and peekToken are both set
 	p.nextToken()
 	p.nextToken()
+
+	// create map of <token, fn> for prefix fns and populate it with respective
+	// token, fn pairs
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 
 	return p
 }
@@ -126,7 +143,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -175,4 +192,39 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return stmt
+}
+
+// parses expression statements.
+// returns a ExpressionStatement with Token and Expression
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	// initalize a expression statement (current token is at start of expr)
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	// a semicolon is optional: if it is encountered, call advance tokens.
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+
+// parse expression using map of <token, fn> defined by registerPrefix
+// parse fns do not advance tokens, they start with curToken being type of
+// associated token and end with curToken being the last token that is part of
+// the expression type
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
