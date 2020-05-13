@@ -5,18 +5,19 @@ import (
 	"monkey-lang/ast"
 	"monkey-lang/lexer"
 	"monkey-lang/token"
+	"strconv"
 )
 
 const (
 	// iota assigns the constants to auto increasing numbers
 	_ int = iota
 	LOWEST
-	EQUALS		// =
+	EQUALS      // =
 	LESSGREATER // < or >
-	SUM			// +
-	PRODUCT		// -
-	PREFIX		// -x or !x
-	CALL		// func(x)
+	SUM         // +
+	PRODUCT     // -
+	PREFIX      // -x or !x
+	CALL        // func(x)
 )
 
 type Parser struct {
@@ -56,6 +57,7 @@ func New(l *lexer.Lexer) *Parser {
 	// token, fn pairs
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	return p
 }
@@ -210,7 +212,6 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
-
 // parse expression using map of <token, fn> defined by registerPrefix
 // parse fns do not advance tokens, they start with curToken being type of
 // associated token and end with curToken being the last token that is part of
@@ -227,4 +228,22 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+
+	// parse string to int64
+	// if it works save the value under IntegerLiteral
+	// else, return error to parser
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+
+	return lit
 }
