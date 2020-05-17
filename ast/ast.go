@@ -109,8 +109,6 @@ func (es *ExpressionStatement) statementNode()       {}
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 
 func (es *ExpressionStatement) String() string {
-	// initalize buffer to store string
-	var out bytes.Buffer
 
 	if es.Expression != nil {
 		return es.Expression.String()
